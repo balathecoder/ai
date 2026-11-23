@@ -1,4 +1,4 @@
-### FlyGpt :
+<img width="1287" height="687" alt="image" src="https://github.com/user-attachments/assets/c461a891-511e-4344-9892-4813f73c74b3" />### FlyGpt :
 My application should be able to interact with the third party flight services, and then retrieve flight details fromt the sites and then also compare that against my preferences such as cheap vs luxury, seats, meals. Based on all of that make a decision and book flights. Here it is expected to AI make decision on behalf of user/customer.
 
 These are called AI Agents. 
@@ -448,4 +448,35 @@ MCP server has features : Prompts, Resources, Tools
 MCP Client has features : Roots, sampling, elicitation
 
 <img width="1259" height="691" alt="image" src="https://github.com/user-attachments/assets/f2c05242-7930-451a-965d-9b2424bd33e1" />
+
+Contexts allows the server to talk back to the clients, may be for giving updates or sharing progress,etc.
+Let say the client initiates the booking process, may be long running task, the server might want to periodic updates to the client before the actual response is shared, so for this we use the context, pass the input context.
+Context.info()
+Context.report_progress()
+Context.debug()
+<img width="1263" height="687" alt="image" src="https://github.com/user-attachments/assets/ba0cd387-9e18-4715-95e4-0c587b28b75f" />
+
+Roots : MCP provides standard way for clients to expose filesystem "roots" to servers. Roots inform servers about the directories and files the client considers relevant, so that servers can focus their operations accordingly.
+
+Now the next thing is the roots, think of Roots as folders on the client machine that the MCP server is allowed to see or interact with. They are like shared folders and exposed to the servers from your local file system. For security reason, the server shouldnt have access to the entire machine.
+so while creating client session pass root argument with the folder that needs to get exposed.
+
+and on the server side, ctx.session.list_roots() to get the list of roots allowed.
+<img width="1263" height="687" alt="image" src="https://github.com/user-attachments/assets/d38816ae-584e-4e81-a93d-43fcaf81bccf" />
+
+Sampling : Sampling in MCP allow servers request LLM completions("generations") through a connected MCP client rather than callling an LLM API directly. The server might want to interact with client for some specific reason. For example, the server might send resources to the LLM to summarize it. For such case, the server doesnt interact with the LLM directly and in such case the server will not interact with LLM directly. Because the server may be used by different clients and would want to have control on certain things like LLM Integrations, Token limits, Model selection, etc. The server is purely the logic and tool definitions, resources, lightweight, decoupled from AI.
+<img width="1263" height="687" alt="image" src="https://github.com/user-attachments/assets/c877459a-329e-4d1b-a61e-67605e68e982" />
+
+This is done by passing sample llm handler function while creating client session. On the server side, we can send message to the client using ctx.session.create_message()
+<img width="1287" height="687" alt="image" src="https://github.com/user-attachments/assets/20cc0b35-5a74-47d5-ad1f-571b75d39764" />
+
+Elicitation : MCP provides a standardized way for servers to request additional information from users through the client during interactions. At times, the server wants to interact with end user to get more information to pick the best flight. the server need additional confirmation that the user is happy for the choice made. in that case, the server can send message using ctx.elicit()
+
+<img width="1287" height="687" alt="image" src="https://github.com/user-attachments/assets/239bddd8-17d4-4d44-9e15-603b4baa3aca" />
+
+
+
+
+
+
 
