@@ -351,6 +351,9 @@ with open('/root/chat-templates.txt', 'w') as f:
     f.write("CHAT_TEMPLATES_COMPLETE")```
 
 ```
+
+output :
+```
 $ python chat_template.py 
 Generated Chat Conversation:
 SYSTEM: You are a Python programming expert with 10 years of experience.
@@ -628,6 +631,30 @@ with open('/root/advanced-templates.txt', 'w') as f:
     f.write("ADVANCED_TEMPLATES_COMPLETE")
 ```
 
+output :
+```
+python advanced_template.py 
+Advanced Template Features Demo
+=============================================
+
+1. Partial Template:
+   As an expert AI consultant, please help with: optimize database queries
+
+2. Structured Output Template:
+   Review this product: iPhone 15
+The output should be formatted as a JSON instance that conforms to th...
+
+3. Conditional Templates:
+   BEGINNER: Explain machine learning in very simple terms with examples.
+   INTERMEDIATE: Explain machine learning with some technical details.
+   ADVANCED: Provide a comprehensive technical explanation of machine learning.
+
+Template Best Practices:
+   1. Always validate user inputs
+   2. Use partial variables for constants
+   3. Structure outputs with Pydantic
+   4. Make templates conditional when needed
+   5. Keep templates readable and maintainable
 ```
 
 ```
