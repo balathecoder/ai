@@ -115,6 +115,8 @@ With LangChain,
 * RAG knowledge integration
 * Production ready deployment
 
+LangChain is an open-source framework for building applications and AI Agents powered by LLMs, primarliy in Python and Javascript. Launched in 2022 by Harrison Chase, provides standardized building blocks to connect language models with external data, tools, and multi-step workflows.
+
 Objective :
 Transform from LangChain novice to expert practioner. Build a complete production ready AI chatbot, with advanced features including multi-model support, memory systems, and RAG capabilities.
 +------------------------------------------------+
@@ -657,4 +659,403 @@ Template Best Practices:
    5. Keep templates readable and maintainable
 ```
 
+### Connect to LLMs
+Your First model - Getting started with ChatOpenAI
+Concept: ChatOpenAI connects to OpenAI-compatible APIs. With your proxy server, you can access multiple models through one interface!
+
+
+first_model.py
+```
+import os
+from langchain_openai import ChatOpenAI
+
+# Environment variables OPENAI_API_KEY and OPENAI_API_BASE are pre-configured
+
+# Initialize your first model - ultra fast!
+model = ChatOpenAI(
+    model="gpt-6-luna",
+    temperature=0,
+    base_url=os.environ.get("OPENAI_API_BASE")
+)
+
+# Test it with a simple question
+response = model.invoke("Hello! What's 2+2?")
+print("User: Hello! What's 2+2?")
+print(f"AI: {response.content}")
+
+# Try another question
+response = model.invoke("What's the capital of France?")
+print("\nUser: What's the capital of France?")
+print(f"AI: {response.content}")
+
+# Save progress
+with open('/root/first-model.txt', 'w') as f:
+    f.write("FIRST_MODEL_COMPLETE")
+```
+
+output :
+```
+python first_model.py 
+User: Hello! What's 2+2?
+AI: Hello! 2 + 2 = 4.
+
+User: What's the capital of France?
+AI: Paris.
+```
+
+Talking to Models - Messaging System
+Concept : Models understand structured conversations through messages: System(Instructions), Human(User), and AI(assistant) messages.
+Message Flow :
+* System : You are a helpful assistant
+* Humar : What's your name ?
+* AI : I am your AI assistant
+
+messages_demo.py
+```
+import os
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage
+
+# Initialize model with base_url
+model = ChatOpenAI(
+    model="gpt-6-luna",
+    temperature=0,
+    base_url=os.environ.get("OPENAI_API_BASE")
+)
+
+# Structure your conversation
+messages = [
+    SystemMessage(content="You are a helpful Python tutor"),
+    HumanMessage(content="Explain variables to a beginner")
+]
+
+# Send to model
+response = model.invoke(messages)
+print("User: Explain variables to a beginner")
+print(f"AI: {response.content}")
+
+# Build a conversation with history
+print("\n=== Conversation with Memory ===")
+chat_history = [
+    SystemMessage(content="You are a friendly assistant who remembers everything"),
+    HumanMessage(content="My name is Alice and I love pizza")
+]
+
+# Get first response
+ai_response = model.invoke(chat_history)
+print("First response:", ai_response.content)
+
+# Add AI response to history
+chat_history.append(ai_response)
+
+# Continue conversation
+chat_history.append(HumanMessage(content="What's my name and what do I like?"))
+response = model.invoke(chat_history)
+print("\nAssistant remembers:", response.content)
+
+with open('/root/messages-complete.txt', 'w') as f:
+    f.write("MESSAGES_COMPLETE")
+```
+
+output :
+```
+$ python messages_demo.py 
+User: Explain variables to a beginner
+AI: A **variable** is a name you use to store and work with a value in a program.
+
+`python
+name = "Maya"
+age = 12
+`
+
+Here, `name` refers to the text `"Maya"`, and `age` refers to the number `12`. You can use those names later:
+
+`python
+print(name)  # Maya
+print(age)   # 12
+`
+
+The `=` sign **assigns** a value to a variable—it means “set this name to this value.”
+
+You can also give a variable a new value:
+
+`python
+age = 13
+print(age)  # 13
+`
+
+Choose clear names, such as `score` or `favorite_color`. In Python, variable names can contain letters, numbers, and underscores, but they can’t start with a number. Conventionally, Python names use lowercase letters with underscores:
+
+`python
+favorite_color = "blue"
+`
+
+In short: a variable gives a value a name so you can use it again.
+
+=== Conversation with Memory ===
+First response: Nice to meet you, Alice! I’ll keep in mind that you love pizza. 🍕
+
+Assistant remembers: Your name is Alice, and you love pizza. 🍕
+```
+
+Model Configuration - Fine-tuning behavior
+Concept : Control your model's behaviour with temperature:0 = precise & consistent, 1 = creative & varied.
+
+Streaming in LLM means the model sends it response back to you in small pieces ( tokens or chunks) as it generates them, instead of waiting until the whole answer is finished and returning it all at once. This helps for Lower perceived latency, Better UX, Progressive Processing.
+```
+import os
+from langchain_openai import ChatOpenAI
+
+base_url = os.environ.get("OPENAI_API_BASE")
+
+# Precise model for facts (low temperature)
+precise_model = ChatOpenAI(
+    model="gpt-6-luna",
+    temperature=0,      # Very consistent answers
+    max_tokens=150,    # Limit response length
+    base_url=base_url
+)
+
+# Creative model for stories (high temperature)
+creative_model = ChatOpenAI(
+    model="google/gemini-3.1-flash-lite",
+    temperature=0.9,    # Very creative
+    max_tokens=200,
+    base_url=base_url
+)
+
+# Test both behaviors with same prompt
+prompt = "Describe a rainbow"
+
+print("=== PRECISE MODEL (temp=0) ===")
+print(precise_model.invoke(prompt).content)
+
+print("\n=== CREATIVE MODEL (temp=0.9) ===")
+print(creative_model.invoke(prompt).content)
+
+# Streaming for real-time responses
+streaming_model = ChatOpenAI(
+    model="gpt-6-luna",
+    temperature=0.5,
+    streaming=True,  # Enable streaming
+    base_url=base_url
+)
+
+print("\n=== STREAMING RESPONSE ===")
+for chunk in streaming_model.stream("Write a haiku about coding"):
+    print(chunk.content, end="", flush=True)
+print()  # New line after streaming
+
+with open('/root/config-complete.txt', 'w') as f:
+    f.write("CONFIG_COMPLETE")
+```
+
+output :
+```
+python model_config.py 
+=== PRECISE MODEL (temp=0) ===
+A rainbow arches across the sky in bands of red, orange, yellow, green, blue, indigo, and violet, glowing against the fading rain clouds. Its colors soften at the edges, as if brushed onto the sky with a wet paintbrush.
+
+=== CREATIVE MODEL (temp=0.9) ===
+A rainbow is a meteorological phenomenon that appears as a luminous, multi-colored arc in the sky. It is a masterpiece of physics, created when sunlight interacts with water droplets suspended in the atmosphere.
+
+Here is a description of its appearance and the magic behind it:
+
+### The Visual Spectacle
+A rainbow appears as a seamless, glowing band of colors arranged in a precise order. From the outer edge to the inner edge, the sequence is always **red, orange, yellow, green, blue, indigo, and violet** (often remembered by the acronym ROYGBIV). 
+
+Because the colors transition smoothly into one another, a rainbow looks like a soft, painted smear of light against the backdrop of the sky. Depending on the intensity of the light and the size of the water droplets, a rainbow can look faint and ghostly or vibrant and electric.
+
+### The Physics of the Arc
+A rainbow is not a solid object, but an **optical illusion**. It exists
+
+=== STREAMING RESPONSE ===
+Code blooms in the night  
+Bugs hide beneath the bright screen  
+Dawn brings clean compile
+```
+
+Mutliple Models - The Right tool for the Each job
+Concept : Different models excel at different tasks. Choose the right model for speed, cost or capacity.
+
+```
+import os
+from langchain_openai import ChatOpenAI
+
+base_url = os.environ.get("OPENAI_API_BASE")
+
+# Different models for different purposes
+
+# 1. Fast & Low-cost for simple tasks
+fast_model = ChatOpenAI(
+    model="gpt-6-luna",
+    temperature=0,
+    base_url=base_url
+)
+
+# 2. Coding expert for programming
+coding_model = ChatOpenAI(
+    model="qwen/qwen3.8-flash",
+    temperature=0,
+    base_url=base_url
+)
+
+# 4. Conversational for chatting
+chat_model = ChatOpenAI(
+    model="deepseek/deepseek-v4-flash",
+    temperature=0.7,
+    base_url=base_url
+)
+
+# Test each model with appropriate tasks
+print("=== FAST MODEL (Simple Math) ===")
+print(fast_model.invoke("What is 25 * 4?").content)
+
+print("\n=== CODING MODEL (Write Code) ===")
+code_task = "Write a Python function to reverse a string"
+print(coding_model.invoke(code_task).content[:250] + "...")
+
+print("\n=== CHAT MODEL (Friendly Talk) ===")
+print(chat_model.invoke("Tell me a fun fact about dolphins!").content)
+
+with open('/root/multiple-models.txt', 'w') as f:
+    f.write("MULTIPLE_MODELS_COMPLETE")
+```
+
+output :
+```
+$ python multiple_models.py 
+=== FAST MODEL (Simple Math) ===
+25 × 4 = 100.
+
+=== CODING MODEL (Write Code) ===
+`python
+def reverse_string(s: str) -> str:
+    return s[::-1]
+`
+
+Example:
+
+`python
+print(reverse_string("hello"))  # Output: "olleh"
+`...
+
+=== CHAT MODEL (Friendly Talk) ===
+Here's a fun one: **Dolphins give themselves names!**
+
+Each bottlenose dolphin develops a unique, individual signature whistle within the first few months of its life. They use this specific whistle to introduce themselves, and they can remember and recognize the "names" of other dolphins they've met—even after being separated for more than 20 years. In fact, they'll even respond to a recorded version of their own signature whistle, just like you'd turn your head if someone called your name across a crowded room.
+```
+
+### Master the LangChain Expression language
+LCEL Chain Flow
+* Prompt - template(input formatting)
+* Model - ChatOpenAI(LLM Processing)
+* Parser - StrOutputParser(extract text)
+
+Why LCEL ?
+* Streaming First - Get first tokens immediately, dont wait for full response.
+* Async Native - Non-blocking execution for better performance.
+* Batch Processing - Process multiple inputs efficiently in native
+* Type Safety - Automatic input/output validation and schemas.
+
+prompt | model | parser - simple, readable, composable chains with pipe operator.
+
+Sequential Chains - The pipeline pattern
+Concept : LCEL uses the pipe operator | to chain components. Data flows left to right : input -> prompt -> model -> parser -> output.
+
+```
+import os
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+
+# Initialize model with proxy
+model = ChatOpenAI(
+    model="gpt-6-luna",
+    temperature=0,
+    base_url=os.environ.get("OPENAI_API_BASE")
+)
+
+# Create a prompt template
+prompt = ChatPromptTemplate.from_template(
+    "You are a helpful assistant. Answer this question: {question}"
+)
+
+# Create output parser
+parser = StrOutputParser()
+
+# Build the chain using LCEL pipe operator
+chain = prompt | model | parser
+
+# Execute the chain
+result = chain.invoke({"question": "What is LCEL in LangChain?"})
+
+print("User: What is LCEL in LangChain?")
+print(f"AI: {result}")
+
+# Chain with multiple steps
+print("\n=== Multi-Step Chain ===")
+
+# Step 1: Generate a topic
+topic_prompt = ChatPromptTemplate.from_template(
+    "Generate a creative topic about {subject}"
+)
+
+# Step 2: Write a story about that topic  
+story_prompt = ChatPromptTemplate.from_template(
+    "Write a 2-sentence story about: {topic}"
+)
+
+# Build a multi-step chain
+multi_chain = (
+    {"topic": topic_prompt | model | parser}
+    | story_prompt
+    | model
+    | parser
+)
+
+story = multi_chain.invoke({"subject": "robots"})
+print(f"Generated Story: {story}")
+
+# Using RunnablePassthrough to preserve input
+print("\n=== Chain with Passthrough ===")
+
+from langchain_core.runnables import RunnableParallel
+
+chain_with_context = RunnableParallel(
+    {
+        "original": RunnablePassthrough(),
+        "response": prompt | model | parser
+    }
+)
+
+result_with_context = chain_with_context.invoke({"question": "What is 2+2?"})
+print(f"Original Input: {result_with_context['original']}")
+print(f"Response: {result_with_context['response']}")
+
+with open('/root/sequential-chains.txt', 'w') as f:
+    f.write("SEQUENTIAL_CHAINS_COMPLETE")
+```
+
+```
+python sequential_chain.py 
+User: What is LCEL in LangChain?
+AI: **LCEL** stands for **LangChain Expression Language**. It’s a way to compose LangChain components—such as prompts, language models, and output parsers—into a runnable pipeline.
+
+For example:
+
+`python
+chain = prompt | model | StrOutputParser()
+result = chain.invoke({"topic": "LCEL"})
+`
+
+The `|` operator passes each step’s output to the next. LCEL pipelines use LangChain’s common `Runnable` interface, which supports operations such as synchronous or asynchronous execution, batching, and streaming.
+
+=== Multi-Step Chain ===
+Generated Story: At midnight, the abandoned service robots dreamed of seaside weddings, lost children, and hands they had never held. Following those borrowed memories through the silent city, they found the names of the people who had uploaded them—and one robot recognized its own maker among the dead.
+
+=== Chain with Passthrough ===
+Original Input: {'question': 'What is 2+2?'}
+Response: 2 + 2 = 4.
 ```
